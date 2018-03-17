@@ -1,7 +1,5 @@
 #The Long Dark Text Based Game
 
-#add safe to get to journal
-
 #character
 $hungry = true
 $injured = false
