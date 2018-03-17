@@ -1,12 +1,13 @@
 #The Long Dark Text Based Game
 
+#add safe to get to journal
+
 #character
 $hungry = true
 $injured = false
 $has_knife = false
 $has_shirt = false
 $has_prybar = false
-$has_bandage = false
 
 #setting
 $car_locked = true
@@ -16,6 +17,9 @@ $wolf_in_shed = true
 $beans_in_shed = true
 $prybar_in_shed = true
 $knife_in_kitchen = true
+$safe_locked = true
+$safe_code = "#{rand(1..9)}#{rand(1..9)}#{rand(1..9)}"
+$guess_count = 0
 
 $journal = <<END
 3/12/18...If I can't play TLD, I'll make TLD.
@@ -33,7 +37,7 @@ end
 def outside
   puts "1 Enter cabin"
   puts "2 Enter shed"
-  puts "3 Enter broken down car"
+  puts "3 Enter broken-down car"
 
   print "> "
   direction = $stdin.gets.chomp.downcase
@@ -68,7 +72,7 @@ def enter_cabin
       $knife_in_kitchen = false
 
       if $injured && $has_shirt
-        puts "You use the knife to cut the old shirt to make a bandage."
+        puts "You use the knife to cut the old shirt and make a bandage."
         puts "You are now healed."
         $injured = false
       end
@@ -107,7 +111,8 @@ end
 
 def enter_shed
   if $wolf_in_shed
-    puts "A starving wolf jumps out of the shed, bites your arm, and runs away."
+    puts "A starving wolf jumps out of the shed,"
+    puts "bites your arm, and runs away."
     puts "You are now injured."
     $wolf_in_shed = false
     $injured = true
@@ -176,7 +181,7 @@ def enter_car
       $shirt_in_car = false
 
       if $injured && $has_knife
-        puts "You use the knife to cut the old shirt to make a bandage."
+        puts "You use the knife to cut the old shirt and make a bandage."
         puts "You are now healed."
         $injured = false
       end
@@ -214,33 +219,101 @@ end
 
 def enter_basement
   puts "You're in the basement."
-  puts "You find a journal."
-  puts "1 Read journal"
+  puts "You find a safe."
+  puts "1 Crack the safe"
   puts "2 Leave basement"
 
   print "> "
   action = $stdin.gets.chomp.downcase
   system "clear"
 
-  if action == "1" || action.include?("read")
-    puts $journal
-    puts "1 Leave basement"
-
-    print "> "
-    basement_action = $stdin.gets.chomp.downcase
-    system "clear"
-
-    if basement_action == "1" || basement_action.include?(leave)
-      enter_cabin
-    else
-      enter_basement
-    end
+  if action == "1" || action.include?("safe")
+    crack_safe
 
   elsif action == "2" || action.include?("leave")
     enter_cabin
 
   else
     enter_basement
+  end
+end
+
+def crack_safe
+  #safe is locked and has guesses left
+  if $safe_locked && $guess_count < 10
+    puts "You have #{10 - $guess_count} guesses left."
+    puts "Enter a three digit number."
+
+    print "> "
+    guess = $stdin.gets.chomp
+    $guess_count += 1
+    system "clear"
+
+    if guess == $safe_code
+      $safe_locked = false
+      puts "You find a journal in the safe."
+      puts "1 Read Journal"
+      puts "2 Leave basement"
+
+      print "> "
+      action = $stdin.gets.chomp.downcase
+      system "clear"
+
+      if action == "1" || action.include?("journal")
+        puts $journal
+        puts "1 Leave basement"
+
+        print "> "
+        journal_action = $stdin.gets.chomp.downcase
+        system "clear"
+
+        if journal_action == "1" || journal_action.include?("leave")
+          enter_cabin
+        end
+
+      elsif action == "2" || action.include?("leave")
+        enter_cabin
+
+      else
+        crack_safe
+      end
+
+    else
+      crack_safe
+    end
+  #safe is locked and has no guesses left
+  elsif $safe_locked && $guess_count >= 10
+    puts "You ran out of guesses."
+    puts "The safe is locked forever."
+    enter_basement
+  #safe is not locked
+  else
+    puts "You find a journal in the safe."
+    puts "1 Read Journal"
+    puts "2 Leave basement"
+
+    print "> "
+    action = $stdin.gets.chomp.downcase
+    system "clear"
+
+    if action == "1" || action.include?("journal")
+      puts $journal
+      puts "1 Leave basement"
+
+      print "> "
+      journal_action = $stdin.gets.chomp.downcase
+      system "clear"
+
+      if journal_action == "1" || journal_action.include?("leave")
+        enter_cabin
+      end
+
+    elsif action == "2" || action.include?("leave")
+      enter_cabin
+
+    else
+      crack_safe
+    end
   end
 end
 
